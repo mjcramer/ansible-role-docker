@@ -1,0 +1,7 @@
+# roles/docker/tasks/initialize.yml
+---
+- name: initialize | start docker
+  service:
+    name: docker
+    enabled: yes
+    state: started

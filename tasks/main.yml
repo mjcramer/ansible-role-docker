@@ -1,0 +1,9 @@
+# roles/docker/tasks/main.yml
+---
+- include: apply.yml
+  tags:
+    - apply
+
+- include: initialize.yml
+  tags:
+    - initialize
