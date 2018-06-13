@@ -1,0 +1,5 @@
+---
+- name: require | config storage device
+  fail:
+    msg: "docker_config_storage_device is not defined"
+  when: docker_config_storage_device is not defined

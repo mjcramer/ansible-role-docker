@@ -1,9 +1,17 @@
-# roles/docker/tasks/main.yml
+# docker/tasks/main.yml
 ---
-- include: apply.yml
+- import_tasks: require.yml
+  tags:
+    - require
+
+- import_tasks: apply.yml
   tags:
     - apply
 
-- include: initialize.yml
+- import_tasks: configure.yml
+  tags:
+    - configure
+
+- import_tasks: initialize.yml
   tags:
     - initialize

@@ -10,3 +10,5 @@ download_dir: /var/cache
 
 apache_mirror: http://mirrors.sonic.net/apache
 jvm_provider: openjdk
+
+docker_config_storage_device: /dev/sdc

@@ -1,5 +1,7 @@
-# roles/docker/tasks/initialize.yml
+# docker/tasks/initialize.yml
 ---
+- meta: flush_handlers
+
 - name: initialize | start docker
   service:
     name: docker

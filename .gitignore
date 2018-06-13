@@ -2,3 +2,5 @@
 *.iml
 **/.vagrant
 *.retry
+*.log
+*.vdi

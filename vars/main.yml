@@ -1,8 +1,26 @@
 # roles/docker/vars/main.yml
 ---
-docker_apt_key_keyserver: hkp://p80.pool.sks-keyservers.net:80
-docker_apt_key_id: 58118E89F3A912897C070ADBF76221572C52609D
 docker_repository: https://apt.dockerproject.org/repo
+docker_config_storage_driver: devicemapper
 
 docker:
-  log_dir: "{{ base_log_dir }}/docker"
+  conf_dir: /etc/docker
+  log_dir: /var/log/docker
+
+  daemon_config:
+    debug: true
+#    tls: false
+##    tlscert: /var/docker/server.pem
+##    tlskey: /var/docker/serverkey.pem
+
+    storage-driver: "{{ docker_config_storage_driver }}"
+    storage-opts:
+    - "dm.directlvm_device={{ docker_config_storage_device }}{{ docker_config_storage_device_number }}"
+    - "dm.directlvm_device_force=false"
+    - "dm.thinp_percent={{ docker_config_thinp_percent }}"
+    - "dm.thinp_metapercent={{ docker_config_thinp_metapercent }}"
+    - "dm.thinp_autoextend_threshold={{ docker_config_thinp_autoextend_threshold }}"
+    - "dm.thinp_autoextend_percent={{ docker_config_thinp_autoextend_percent }}"
+    - "dm.use_deferred_removal=true"
+    - "dm.use_deferred_deletion=true"
+

@@ -1,58 +1,31 @@
-# roles/docker/tasks/apply.yml
+# /tasks/apply.yml
 ---
-#- name: apply | packages
-#  package:
-#    name: "{{ item }}"
-#    state: present
-#  with_items:
-#    - apt-transport-https
-#    - ca-certificates
-#    - linux-image-extra-{{ ansible_kernel }}
-#
-#- name: apply | add apt-key
-#  apt_key:
-#    keyserver: "{{ docker_apt_key_keyserver }}"
-#    id: "{{ docker_apt_key_id }}"
-#    state: present
-#    validate_certs: False
-#
-#- name: apply | add apt-repository
-#  apt_repository:
-#    repo: 'deb {{ docker.repository }} ubuntu-{{ ansible_distribution_release | lower }} main'
-#    state: present
-
-#- name: apply | packages
-#  package:
-#    name: "{{ item }}"
-#    state: present
-#    update_cache: yes
-#  with_items:
-#    - docker-engine
-
-- name: apply | packages
-  package:
-    name: "{{ item }}"
-    state: present
-    update_cache: yes
-  with_items:
-    - docker
-#    - docker-logrotate
+- include_tasks: apply-{{ ansible_os_family }}.yml
 
 - name: apply | add group
   group:
-    name: "{{ docker_group }}" 
+    name: "{{ docker_group }}"
     system: true
     state: present
 
 - name: apply | add user to group
   user:
-    name: "{{ ansible_user }}"
+    name: "{{ ansible_env.USER }}"
     groups: "{{ docker_group }}"
     append: yes
+  when: ansible_env.USER is defined
+
+- name: apply | add sudo user to group
+  user:
+    name: "{{ ansible_env.SUDO_USER }}"
+    groups: "{{ docker_group }}"
+    append: yes
+  when: ansible_env.SUDO_USER is defined
 
 - name: apply | create folders
-  file: 
+  file:
     path: "{{ item }}"
     state: directory
   with_items:
     - "{{ docker.log_dir }}"
+    - "{{ docker.conf_dir }}"

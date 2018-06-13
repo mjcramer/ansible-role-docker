@@ -5,13 +5,15 @@ dependencies:
 
 galaxy_info:
   author: Michael Cramer
-  description: Ansible role for installing Docker
+  description: Ansible role for installing Docker CE
   license: Unlicensed
   min_ansible_version: 2.4
   platforms:
   - name: Ubuntu
     versions:
     - zesty
+    - artful
+    - bionic
   - name: EL
     versions:
     - 7

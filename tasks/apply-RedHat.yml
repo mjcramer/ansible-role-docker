@@ -1,0 +1,19 @@
+# roles/docker/tasks/apply.yml
+---
+# curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+- name: apply | add apt key
+  fail:
+    msg: "not implemented yet"
+    state: present
+
+- name: apply | packages
+  package:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - docker
+    - docker.io
+#    - docker-logrotate
+

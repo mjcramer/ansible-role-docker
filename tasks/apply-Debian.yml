@@ -1,0 +1,22 @@
+# roles/docker/tasks/apply.yml
+---
+- name: apply | add apt key
+  apt_key:
+    url: "{{ docker_apt_repository }}/ubuntu/gpg"
+    state: present
+
+- name: apply | add apt repository
+  apt_repository:
+    repo: "deb [arch=amd64] {{ docker_apt_repository }}/{{ ansible_distribution|lower }} {{ ansible_distribution_release }} stable"
+    state: present
+    update_cache: yes
+
+- name: apply | packages
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - "docker-{{ docker_edition }}"
+    - lvm2
+    - thin-provisioning-tools
+
