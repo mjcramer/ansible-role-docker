@@ -12,7 +12,7 @@ before_install:
 install:
   # Install Ansible.
   - sudo pip install ansible
-  - sudo apt-get install vagrant
+  - sudo apt-get install -y ruby2.4 vagrant
   - vagrant plugin install vagrant-google
 
 before_script:
