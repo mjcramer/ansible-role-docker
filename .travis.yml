@@ -11,7 +11,9 @@ before_install:
 
 install:
   # Install Ansible.
-  - pip install ansible
+  - sudo pip install ansible
+  - sudo apt-get install vagrant
+  - vagrant plugin install vagrant-google
 
 before_script:
   - tests/setup.sh
