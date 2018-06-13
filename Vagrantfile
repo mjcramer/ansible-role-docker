@@ -1,15 +1,14 @@
 VAGRANTFILE_API_VERSION = '2'
 
+ssh_key = File.read("/Users/cramer/.ssh/mjcramer-travis-ci.pub")
+
 Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
-  # Base VM OS configuration.
-  # config.vm.box = "centos/7"
-  # config.vm.box = "ubuntu/artful64"
-  # config.vm.box = "google/gce"
-  config.vm.synced_folder '.', '/vagrant', disabled: true
   config.vm.define "docker-1"
   config.vm.hostname = "docker-1"
+  config.vm.synced_folder '.', '/vagrant', disabled: true
 
+  # config.vm.box = "google/gce"
   # config.vm.provider :google do |google, override|
   #   google.google_project_id = "sandbox-1023"
   #   google.google_client_email = "travis-ci@sandbox-1023.iam.gserviceaccount.com"
@@ -19,11 +18,16 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   #   google.preemptible = true
   #   google.auto_restart = false
   #   google.on_host_maintenance = "TERMINATE"
+  #   google.metadata = {
+  #     "sshKeys" => ssh_key
+  #   }
   #
-  #   override.ssh.username = ENV['USER']
-  #   override.ssh.private_key_path = "~/.ssh/google_compute_engine"
+  #   override.ssh.username = "mjcramer"
+  #   override.ssh.private_key_path = "~/.ssh/mjcramer-travis-ci"
   # end
 
+  # config.vm.box = "centos/7"
+  config.vm.box = "ubuntu/bionic64"
   docker_volume = '/tmp/docker-1.vdi'
 
   # Virtualbox configuration
@@ -59,5 +63,4 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     ansible.extra_vars = {
     }
   end
-
 end

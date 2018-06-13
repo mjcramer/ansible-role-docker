@@ -1,3 +1,4 @@
 #!/usr/bin/env bash
 
-ansible-galaxy install mjcramer.system
+ansible-galaxy install --force mjcramer.system
+vagrant up
