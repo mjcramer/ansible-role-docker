@@ -5,23 +5,28 @@ python: "2.7"
 env:
   - ANSIBLE_CONFIG=tests/ansible.cfg
 
+cache:
+  directories:
+    - "$HOME/google-cloud-sdk/"
+
 before_install:
   # Make sure everything's up to date.
-  - sudo apt-add-repository -y ppa:brightbox/ruby-ng
   - sudo apt-get update -qq
 
 install:
   # Install Ansible.
   - sudo pip install ansible
-  - sudo apt-get install -y ruby2.4 vagrant
-  - vagrant plugin install vagrant-google
+  # Install Google Cloud SDK
+  - if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
 
 before_script:
+  - source /home/travis/google-cloud-sdk/path.bash.inc
+  - gcloud version
   - tests/setup.sh
 
 script:
-  - "ansible-playbook -i tests/inventory tests/test.yml --syntax-check"
-  - "ansible-playbook -i tests/inventory tests/test.yml --connection=local --sudo"
+  - ansible-playbook -i tests/inventory tests/test.yml --syntax-check
+  - ansible-playbook -i tests/inventory tests/test.yml --connection=local --sudo
   # Run the role/playbook again, checking to make sure it's idempotent.
   - >
     ansible-playbook -i tests/inventory tests/test.yml --connection=local --sudo

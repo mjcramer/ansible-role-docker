@@ -1,11 +1,57 @@
 # docker/tasks/configure.yml
 ---
-- parted:
+- name: configure | partition
+  parted:
     device: "{{ docker_config_storage_device }}"
     number: "{{ docker_config_storage_device_number }}"
     flags:
     - lvm
     state: present
+
+- name: configure | create volume group
+  lvg:
+    vg: "{{ docker_lvm_volume_group }}"
+    pvs: "{{ docker_config_directlvm_device }}"
+    state: present
+    vg_options: "--zero y --force"
+  register: create_volume_group
+
+- name: configure | create logical volume
+  lvol:
+    vg: "{{ docker_lvm_volume_group }}"
+    lv: thinpool
+    size: "{{ docker_config_thinp_percent }}%VG"
+    opts: "--wipesignatures y"
+    force: yes
+  register: create_logicial_volume
+
+- name: configure | create logical meta volume
+  lvol:
+    vg: "{{ docker_lvm_volume_group }}"
+    lv: thinpoolmeta
+    size: "{{ docker_config_thinp_metapercent }}%VG"
+    opts: "--wipesignatures y"
+    force: yes
+  register: create_logicial_meta_volume
+
+- name: configure | convert to thinpool
+  command: lvconvert -y --zero n -c 512K --thinpool {{ docker_lvm_volume_group }}/thinpool --poolmetadata {{ docker_lvm_volume_group }}/thinpoolmeta
+  when:
+    - create_volume_group.changed
+    - create_logicial_volume.changed
+    - create_logicial_meta_volume.changed
+
+- name: configure | create lvm profile
+  template:
+    src: docker-thinpool.profile.j2
+    dest: /etc/lvm/profile/docker-thinpool.profile
+    mode: 0644
+  register: docker_lvm_profile
+
+- name: configure | apply lvm profile
+  command: lvchange --metadataprofile docker-thinpool {{ docker_lvm_volume_group }}/thinpool
+  when:
+    - docker_lvm_profile.changed
 
 - name: configure | daemon
   template:
@@ -14,83 +60,19 @@
   notify:
     - restart docker
 
-#- name: configure | create vol group
-#  lvg:
-#    vg: vg.docker
-#    pvs: "{{ docker_config_storage_device }}"
-#    state: present
-#
-#- name: configure | create vol
-#  lvol:
-#    vg: vg.docker
-#    lv: storage
-#    size: "{{ docker_config_storage_ratio }}%VG"
-#    thinpool: docker
-#
-#- name: configure | create vol meta
-#  lvol:
-#    vg: vg.docker
-#    lv: storagemeta
-#    size: "{{ docker_config_storage_ratio }}%VG"
-#    thinpool: dockermeta
 
 
-#sudo lvcreate --wipesignatures y -n thinpool docker -l 95%VG
-#
-#Logical volume "thinpool" created.
-#
-#$ sudo lvcreate --wipesignatures y -n thinpoolmeta docker -l 1%VG
-#
-#Logical volume "thinpoolmeta" created.
-#
-#Convert the volumes to a thin pool and a storage location for metadata for the thin pool, using the lvconvert command.
-#
-#$ sudo lvconvert -y \
-#--zero n \
-#-c 512K \
-#--thinpool docker/thinpool \
-#--poolmetadata docker/thinpoolmeta
-#
-#WARNING: Converting logical volume docker/thinpool and docker/thinpoolmeta to
-#thin pool's data and metadata volumes with metadata wiping.
-#THIS WILL DESTROY CONTENT OF LOGICAL VOLUME (filesystem etc.)
-#Converted docker/thinpool to thin pool.
+#pvcreate /dev/sdb1 --force
+#parted /dev/sdb
+#vgcreate docker /dev/sdb1
+#lvcreate --wipesignatures y -n thinpool docker -l 95%VG
+#lvcreate --wipesignatures y -n thinpoolmeta docker -l 1%VG
 
-
-
-#    4  2018-01-30 05:12:39 lvcreate --wipesignatures y -n thinpool docker -l 95%VG
-#    5  2018-01-30 05:12:41 lvcreate --wipesignatures y -n thinpoolmeta docker -l 1%VG
-#    6  2018-01-30 05:12:49 lvconvert -y --zero n -c 512K --thinpool docker/thinpool --poolmetadata docker/thinpoolmeta
-#    7  2018-01-30 05:13:13 cat <<'_EOF' >/etc/lvm/profile/docker-thinpool.profile
-#activation {
-#    thin_pool_autoextend_threshold=80
-#    thin_pool_autoextend_percent=20
-#}
-#_EOF
-#
-#   27  2018-01-30 05:51:10 lvchange --metadataprofile docker-thinpool docker/thinpool
-#   28  2018-01-30 05:51:34 lvs -o+seg_monitor
-#   30  2018-01-30 05:52:17 rm -rf /var/lib/docker/*
-#   31  2018-01-30 05:52:40 mv daemon.old daemon.json
-#   32  2018-01-30 05:52:46 systemctl restart docker
-
-
+#sudo lvconvert -y --zero n -c 512K --thinpool docker/thinpool --poolmetadata docker/thinpoolmeta
 #sudo vi /etc/lvm/profile/docker-thinpool.profile
-#
-#Specify thin_pool_autoextend_threshold and thin_pool_autoextend_percent values.
-#
-#thin_pool_autoextend_threshold is the percentage of space used before lvm attempts to autoextend the available space (100 = disabled, not recommended).
-#
-#thin_pool_autoextend_percent is the amount of space to add to the device when automatically extending (0 = disabled).
-#
-#The example below adds 20% more capacity when the disk usage reaches 80%.
-#
-#activation {
-#  thin_pool_autoextend_threshold=80
-#  thin_pool_autoextend_percent=20
-#}
 
-#
-#sudo lvchange --metadataprofile docker-thinpool docker/thinpool
-#
+#lvchange --metadataprofile docker-thinpool docker/thinpool
 #lvs -o+seg_monitor
+#systemctl restart docker
+
+
