@@ -12,11 +12,11 @@ cache:
 before_install:
   # Make sure everything's up to date.
   - sudo apt-get update -qq
-  - sudo pip install --upgrade pip 
+  - sudo pip3 install --upgrade pip
 
 install:
   # Install Ansible.
-  - sudo pip install ansible
+  - sudo pip3 install ansible
   # Install Google Cloud SDK
   - if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
 
